@@ -1,0 +1,140 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN
+  MANAGER
+  EMPLOYEE
+}
+
+enum ExpenseStatus {
+  DRAFT
+  PENDING
+  APPROVED
+  REJECTED
+  PAID
+}
+
+enum ApprovalAction {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum RuleType {
+  PERCENTAGE
+  SPECIFIC
+  HYBRID
+}
+
+model Company {
+  id              String            @id @default(cuid())
+  name            String
+  country         String
+  defaultCurrency String            @default("USD")
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+  users           User[]
+  expenses        Expense[]
+  workflows       ApprovalWorkflow[]
+  rules           Rule[]
+}
+
+model User {
+  id              String          @id @default(cuid())
+  companyId       String
+  company         Company         @relation(fields: [companyId], references: [id])
+  name            String
+  email           String          @unique
+  passwordHash    String
+  role            Role            @default(EMPLOYEE)
+  managerId       String?
+  manager         User?           @relation("ManagerEmployee", fields: [managerId], references: [id])
+  subordinates    User[]          @relation("ManagerEmployee")
+  expenses        Expense[]
+  approvalRecords ApprovalRecord[]
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+}
+
+model Expense {
+  id               String          @id @default(cuid())
+  companyId        String
+  company          Company         @relation(fields: [companyId], references: [id])
+  userId           String
+  user             User            @relation(fields: [userId], references: [id])
+  title            String
+  description      String?         @db.Text
+  amount           Decimal         @db.Decimal(10, 2)
+  currency         String          @default("USD")
+  convertedAmount  Decimal?        @db.Decimal(10, 2)
+  category         String
+  expenseDate      DateTime
+  receiptUrl       String?
+  ocrData          Json?
+  status           ExpenseStatus   @default(PENDING)
+  workflowId       String?
+  workflow         ApprovalWorkflow? @relation(fields: [workflowId], references: [id])
+  currentStepOrder Int             @default(1)
+  approvalRecords  ApprovalRecord[]
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+}
+
+model ApprovalWorkflow {
+  id          String           @id @default(cuid())
+  companyId   String
+  company     Company          @relation(fields: [companyId], references: [id])
+  name        String
+  description String?
+  isDefault   Boolean          @default(false)
+  steps       WorkflowStep[]
+  expenses    Expense[]
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+}
+
+model WorkflowStep {
+  id              String           @id @default(cuid())
+  workflowId      String
+  workflow        ApprovalWorkflow @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+  stepOrder       Int
+  name            String
+  approverRole    Role
+  specificUserId  String?
+  approvalRecords ApprovalRecord[]
+  createdAt       DateTime         @default(now())
+}
+
+model ApprovalRecord {
+  id          String         @id @default(cuid())
+  expenseId   String
+  expense     Expense        @relation(fields: [expenseId], references: [id])
+  stepId      String
+  step        WorkflowStep   @relation(fields: [stepId], references: [id])
+  approverId  String?
+  approver    User?          @relation(fields: [approverId], references: [id])
+  action      ApprovalAction @default(PENDING)
+  comment     String?        @db.Text
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+}
+
+model Rule {
+  id          String   @id @default(cuid())
+  companyId   String
+  company     Company  @relation(fields: [companyId], references: [id])
+  name        String
+  description String?
+  type        RuleType
+  config      Json
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
