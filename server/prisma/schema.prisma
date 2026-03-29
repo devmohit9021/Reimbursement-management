@@ -93,7 +93,8 @@ model ApprovalWorkflow {
   company     Company          @relation(fields: [companyId], references: [id])
   name        String
   description String?
-  isDefault   Boolean          @default(false)
+  isDefault         Boolean          @default(false)
+  isManagerApprover Boolean          @default(true)
   steps       WorkflowStep[]
   expenses    Expense[]
   createdAt   DateTime         @default(now())

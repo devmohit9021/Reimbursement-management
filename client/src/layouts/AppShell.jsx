@@ -40,6 +40,47 @@ export default function AppShell({ children }) {
 
   const items = navItems[user?.role] || [];
 
+  const themeColors = {
+    ADMIN: {
+      sidebarHeader: 'border-b border-indigo-500/20 bg-gradient-to-r from-indigo-900/10 to-transparent',
+      logoBg: 'bg-indigo-600 shadow-indigo-500/30',
+      companyText: 'text-indigo-400',
+      navActive: 'bg-indigo-600 text-white shadow-md shadow-indigo-500/25',
+      navHover: 'hover:bg-indigo-50 hover:text-indigo-700',
+      iconHover: 'group-hover:text-indigo-500',
+      avatarBg: 'bg-indigo-100/50',
+      avatarText: 'text-indigo-700',
+      badgeBg: 'bg-indigo-100',
+      badgeText: 'text-indigo-700'
+    },
+    MANAGER: {
+      sidebarHeader: 'border-b border-emerald-500/20 bg-gradient-to-r from-emerald-900/10 to-transparent',
+      logoBg: 'bg-emerald-600 shadow-emerald-500/30',
+      companyText: 'text-emerald-500',
+      navActive: 'bg-emerald-600 text-white shadow-md shadow-emerald-500/25',
+      navHover: 'hover:bg-emerald-50 hover:text-emerald-700',
+      iconHover: 'group-hover:text-emerald-500',
+      avatarBg: 'bg-emerald-100/50',
+      avatarText: 'text-emerald-700',
+      badgeBg: 'bg-emerald-100',
+      badgeText: 'text-emerald-700'
+    },
+    EMPLOYEE: {
+      sidebarHeader: 'border-b border-sky-500/20 bg-gradient-to-r from-sky-900/10 to-transparent',
+      logoBg: 'bg-sky-600 shadow-sky-500/30',
+      companyText: 'text-sky-500',
+      navActive: 'bg-sky-600 text-white shadow-md shadow-sky-500/25',
+      navHover: 'hover:bg-sky-50 hover:text-sky-700',
+      iconHover: 'group-hover:text-sky-500',
+      avatarBg: 'bg-sky-100/50',
+      avatarText: 'text-sky-700',
+      badgeBg: 'bg-sky-100',
+      badgeText: 'text-sky-700'
+    }
+  };
+
+  const theme = themeColors[user?.role] || themeColors.EMPLOYEE;
+
   const handleLogout = () => {
     logout();
     navigate('/login');
@@ -48,15 +89,16 @@ export default function AppShell({ children }) {
   const SidebarContent = () => (
     <div className="flex flex-col h-full">
       {/* Logo */}
-      <div className={clsx('px-6 py-5 border-b flex items-center gap-3',
-        dark ? 'border-slate-700' : 'border-indigo-100'
+      <div className={clsx('px-6 py-5 flex items-center gap-3',
+        theme.sidebarHeader,
+        dark ? 'border-slate-700' : ''
       )}>
-        <div className="w-9 h-9 bg-indigo-600 rounded-xl flex items-center justify-center shadow-lg shadow-indigo-500/30">
+        <div className={clsx('w-9 h-9 rounded-xl flex items-center justify-center shadow-lg', theme.logoBg)}>
           <Wallet size={18} className="text-white" />
         </div>
         <div>
           <div className={clsx('font-bold text-sm leading-tight', dark ? 'text-white' : 'text-gray-900')}>ReimburseHQ</div>
-          <div className="text-xs text-indigo-400 font-medium truncate max-w-[120px]">{user?.companyName}</div>
+          <div className={clsx('text-xs font-semibold truncate max-w-[120px]', theme.companyText)}>{user?.companyName}</div>
         </div>
       </div>
 
@@ -75,13 +117,13 @@ export default function AppShell({ children }) {
               className={clsx(
                 'flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 group',
                 active
-                  ? 'bg-indigo-600 text-white shadow-md shadow-indigo-500/25'
+                  ? theme.navActive
                   : dark
                     ? 'text-slate-300 hover:bg-slate-700 hover:text-white'
-                    : 'text-gray-600 hover:bg-indigo-50 hover:text-indigo-700'
+                    : `text-gray-600 ${theme.navHover}`
               )}
             >
-              <Icon size={18} className={active ? 'text-white' : 'group-hover:text-indigo-500 transition-colors'} />
+              <Icon size={18} className={active ? 'text-white' : `${theme.iconHover} transition-colors`} />
               <span className="flex-1">{label}</span>
               {active && <ChevronRight size={14} className="text-indigo-300" />}
             </Link>
@@ -91,8 +133,8 @@ export default function AppShell({ children }) {
 
       {/* User card */}
       <div className={clsx('p-4 border-t', dark ? 'border-slate-700' : 'border-gray-100')}>
-        <div className={clsx('rounded-xl p-3 flex items-center gap-3', dark ? 'bg-slate-700' : 'bg-gray-50')}>
-          <div className="w-9 h-9 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-700 font-bold text-sm flex-shrink-0">
+        <div className={clsx('rounded-xl p-3 flex items-center gap-3', dark ? 'bg-slate-700/50' : 'bg-gray-50')}>
+          <div className={clsx('w-9 h-9 rounded-full flex items-center justify-center font-bold text-sm flex-shrink-0', theme.avatarBg, theme.avatarText)}>
             {user?.name?.charAt(0).toUpperCase()}
           </div>
           <div className="flex-1 min-w-0">
@@ -171,18 +213,16 @@ export default function AppShell({ children }) {
             </button>
 
             {/* Avatar */}
-            <div className={clsx('flex items-center gap-2 px-3 py-2 rounded-xl', dark ? 'bg-slate-700' : 'bg-gray-50')}>
-              <div className="w-7 h-7 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-700 font-bold text-xs">
+            <div className={clsx('flex items-center gap-2 px-3 py-2 rounded-xl transition-colors', dark ? 'bg-slate-700' : 'bg-gray-50')}>
+              <div className={clsx('w-7 h-7 rounded-full flex items-center justify-center font-bold text-xs', theme.avatarBg, theme.avatarText)}>
                 {user?.name?.charAt(0).toUpperCase()}
               </div>
               <span className={clsx('text-sm font-medium hidden sm:block', dark ? 'text-slate-200' : 'text-gray-700')}>
                 {user?.name?.split(' ')[0]}
               </span>
               <span className={clsx(
-                'text-xs font-semibold px-1.5 py-0.5 rounded-md hidden sm:block',
-                user?.role === 'ADMIN' ? 'bg-indigo-100 text-indigo-700' :
-                user?.role === 'MANAGER' ? 'bg-emerald-100 text-emerald-700' :
-                'bg-amber-100 text-amber-700'
+                'text-xs font-semibold px-2 py-0.5 rounded-md hidden sm:block',
+                theme.badgeBg, theme.badgeText
               )}>
                 {user?.role}
               </span>

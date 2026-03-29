@@ -1,10 +1,8 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { Wallet, Eye, EyeOff, ArrowRight, Loader2 } from 'lucide-react';
 import toast from 'react-hot-toast';
-
-const CURRENCIES = ['USD', 'EUR', 'GBP', 'INR', 'AUD', 'CAD', 'SGD', 'AED', 'JPY'];
 
 export default function RegisterPage() {
   const { register } = useAuth();
@@ -12,8 +10,42 @@ export default function RegisterPage() {
   const [form, setForm] = useState({ name: '', email: '', password: '', companyName: '', country: '', defaultCurrency: 'USD' });
   const [showPwd, setShowPwd] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [countries, setCountries] = useState([]);
+  const [countriesLoading, setCountriesLoading] = useState(true);
+
+  useEffect(() => {
+    fetch('https://restcountries.com/v3.1/all?fields=name,currencies')
+      .then(r => r.json())
+      .then(data => {
+        const sorted = data.sort((a, b) => a.name.common.localeCompare(b.name.common));
+        setCountries(sorted);
+      })
+      .catch((err) => {
+        console.error("Failed to load countries", err);
+        // Fallback options
+        setCountries([
+          { name: { common: 'United States' }, currencies: { USD: {} } },
+          { name: { common: 'United Kingdom' }, currencies: { GBP: {} } },
+          { name: { common: 'India' }, currencies: { INR: {} } },
+        ]);
+      })
+      .finally(() => setCountriesLoading(false));
+  }, []);
 
   const set = (k) => (e) => setForm(f => ({ ...f, [k]: e.target.value }));
+
+  const handleCountryChange = (e) => {
+    const countryName = e.target.value;
+    const countryData = countries.find(c => c.name.common === countryName);
+    let currency = form.defaultCurrency;
+    
+    // Automatically select the first currency of that country
+    if (countryData && countryData.currencies) {
+      currency = Object.keys(countryData.currencies)[0];
+    }
+    
+    setForm(f => ({ ...f, country: countryName, defaultCurrency: currency }));
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -87,15 +119,29 @@ export default function RegisterPage() {
             </div>
 
             <div className="grid grid-cols-2 gap-4">
-              <InputField label="Country" name="country" placeholder="India" />
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1.5">Default Currency</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1.5">Country</label>
                 <select
-                  value={form.defaultCurrency} onChange={set('defaultCurrency')}
+                  required
+                  value={form.country} onChange={handleCountryChange}
                   className="w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-slate-600 bg-white dark:bg-slate-800 text-gray-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all"
                 >
-                  {CURRENCIES.map(c => <option key={c}>{c}</option>)}
+                  <option value="" disabled>{countriesLoading ? 'Loading...' : 'Select Country'}</option>
+                  {countries.map(c => (
+                    <option key={c.name.common} value={c.name.common}>{c.name.common}</option>
+                  ))}
                 </select>
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1.5">Default Currency</label>
+                <input
+                  type="text"
+                  required
+                  readOnly
+                  value={form.defaultCurrency}
+                  className="w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-slate-600 bg-gray-50 dark:bg-slate-700 text-gray-600 dark:text-slate-300 text-sm cursor-not-allowed"
+                />
               </div>
             </div>
 

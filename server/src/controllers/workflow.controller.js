@@ -20,7 +20,7 @@ const getWorkflowById = async (req, res) => {
 };
 
 const createWorkflow = async (req, res) => {
-  const { name, description, isDefault, steps } = req.body;
+  const { name, description, isDefault, isManagerApprover, steps } = req.body;
   if (!name || !steps || !Array.isArray(steps) || steps.length === 0) {
     throw new AppError('name and at least one step are required', 400);
   }
@@ -35,7 +35,7 @@ const createWorkflow = async (req, res) => {
   const workflow = await prisma.approvalWorkflow.create({
     data: {
       companyId: req.user.companyId,
-      name, description, isDefault: isDefault || false,
+      name, description, isDefault: isDefault || false, isManagerApprover: isManagerApprover ?? true,
       steps: {
         create: steps.map((s, i) => ({
           stepOrder: i + 1,
@@ -51,7 +51,7 @@ const createWorkflow = async (req, res) => {
 };
 
 const updateWorkflow = async (req, res) => {
-  const { name, description, isDefault, steps } = req.body;
+  const { name, description, isDefault, isManagerApprover, steps } = req.body;
   const workflow = await prisma.approvalWorkflow.findFirst({
     where: { id: req.params.id, companyId: req.user.companyId },
   });
@@ -83,6 +83,7 @@ const updateWorkflow = async (req, res) => {
         ...(name && { name }),
         ...(description !== undefined && { description }),
         ...(isDefault !== undefined && { isDefault }),
+        ...(isManagerApprover !== undefined && { isManagerApprover }),
       },
     });
   });

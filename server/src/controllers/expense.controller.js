@@ -174,15 +174,25 @@ const getPendingForApprover = async (req, res) => {
   });
   const stepIds = steps.map(s => s.id);
 
+  let whereClause = {
+    companyId: req.user.companyId,
+    status: 'PENDING',
+    approvalRecords: {
+      some: { stepId: { in: stepIds }, action: 'PENDING' },
+    },
+  };
+
+  // Enforce IS MANAGER APPROVER rule
+  if (req.user.role === 'MANAGER') {
+    whereClause.OR = [
+      { workflow: { isManagerApprover: true }, user: { managerId: req.user.id } },
+      { workflow: { isManagerApprover: false } }
+    ];
+  }
+
   const [expenses, total] = await Promise.all([
     prisma.expense.findMany({
-      where: {
-        companyId: req.user.companyId,
-        status: 'PENDING',
-        approvalRecords: {
-          some: { stepId: { in: stepIds }, action: 'PENDING' },
-        },
-      },
+      where: whereClause,
       skip,
       take: parseInt(limit),
       orderBy: { createdAt: 'asc' },
@@ -194,11 +204,7 @@ const getPendingForApprover = async (req, res) => {
       },
     }),
     prisma.expense.count({
-      where: {
-        companyId: req.user.companyId,
-        status: 'PENDING',
-        approvalRecords: { some: { stepId: { in: stepIds }, action: 'PENDING' } },
-      },
+      where: whereClause,
     }),
   ]);
   res.json({ expenses, total, page: parseInt(page), limit: parseInt(limit), totalPages: Math.ceil(total / parseInt(limit)) });

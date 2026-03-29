@@ -46,8 +46,10 @@ export default function SubmitExpensePage() {
       fd.append('receipt', file);
       const { data } = await api.post('/ocr/extract', fd, { headers: { 'Content-Type': 'multipart/form-data' } });
       if (data.amount) setForm(f => ({ ...f, amount: String(data.amount) }));
+      if (data.currency) setForm(f => ({ ...f, currency: data.currency }));
       if (data.date) setForm(f => ({ ...f, expenseDate: data.date }));
       if (data.merchant && !form.title) setForm(f => ({ ...f, title: data.merchant.slice(0, 60) }));
+      if (data.category) setForm(f => ({ ...f, category: data.category }));
       setOcrDone(true);
       toast.success('Receipt scanned! Fields auto-filled');
     } catch {

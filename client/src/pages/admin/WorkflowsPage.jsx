@@ -10,7 +10,7 @@ import clsx from 'clsx';
 const ROLES = ['EMPLOYEE', 'MANAGER', 'ADMIN'];
 
 const emptyStep = { name: '', approverRole: 'MANAGER', specificUserId: '' };
-const emptyForm = { name: '', description: '', isDefault: false, steps: [{ ...emptyStep }] };
+const emptyForm = { name: '', description: '', isDefault: false, isManagerApprover: true, steps: [{ ...emptyStep }] };
 
 export default function WorkflowsPage() {
   const { dark } = useTheme();
@@ -28,7 +28,7 @@ export default function WorkflowsPage() {
   const openCreate = () => { setForm(emptyForm); setSelected(null); setModal('create'); };
   const openEdit = (w) => {
     setSelected(w);
-    setForm({ name: w.name, description: w.description || '', isDefault: w.isDefault, steps: w.steps.map(s => ({ name: s.name, approverRole: s.approverRole, specificUserId: s.specificUserId || '' })) });
+    setForm({ name: w.name, description: w.description || '', isDefault: w.isDefault, isManagerApprover: w.isManagerApprover !== false, steps: w.steps.map(s => ({ name: s.name, approverRole: s.approverRole, specificUserId: s.specificUserId || '' })) });
     setModal('edit');
   };
 
@@ -124,6 +124,7 @@ export default function WorkflowsPage() {
                     <div className={clsx('font-bold flex items-center gap-2', dark ? 'text-white' : 'text-gray-900')}>
                       {w.name}
                       {w.isDefault && <span className="text-xs bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 px-2 py-0.5 rounded-full flex items-center gap-1"><Star size={10} /> Default</span>}
+                      {w.isManagerApprover !== false && <span className="text-xs bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 px-2 py-0.5 rounded-full flex items-center gap-1">Manager First</span>}
                     </div>
                     {w.description && <div className="text-xs text-gray-400 dark:text-slate-400 mt-0.5">{w.description}</div>}
                   </div>
@@ -179,10 +180,19 @@ export default function WorkflowsPage() {
               <input type="text" value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))} className={inp} placeholder="Brief description" />
             </div>
           </div>
-          <label className="flex items-center gap-2 cursor-pointer">
-            <input type="checkbox" checked={form.isDefault} onChange={e => setForm(f => ({ ...f, isDefault: e.target.checked }))} className="w-4 h-4 text-indigo-600 rounded" />
-            <span className={clsx('text-sm', dark ? 'text-slate-300' : 'text-gray-700')}>Set as default workflow</span>
-          </label>
+          <div className="flex gap-6">
+            <label className="flex items-center gap-2 cursor-pointer border px-4 py-2.5 rounded-xl border-gray-200 dark:border-slate-700 hover:bg-gray-50 dark:hover:bg-slate-700/50 transition-colors flex-1">
+              <input type="checkbox" checked={form.isDefault} onChange={e => setForm(f => ({ ...f, isDefault: e.target.checked }))} className="w-4 h-4 text-indigo-600 rounded" />
+              <span className={clsx('text-sm font-medium', dark ? 'text-slate-300' : 'text-gray-700')}>Set as Default Workflow</span>
+            </label>
+            <label className="flex items-center gap-2 cursor-pointer border px-4 py-2.5 rounded-xl border-gray-200 dark:border-slate-700 hover:bg-gray-50 dark:hover:bg-slate-700/50 transition-colors flex-1" title="Routes 'MANAGER' steps exclusively to the user's specific manager">
+              <input type="checkbox" checked={form.isManagerApprover} onChange={e => setForm(f => ({ ...f, isManagerApprover: e.target.checked }))} className="w-4 h-4 text-indigo-600 rounded" />
+              <div className="flex flex-col">
+                <span className={clsx('text-sm font-medium', dark ? 'text-slate-300' : 'text-gray-700')}>Is Manager Approver</span>
+                <span className="text-xs text-gray-400">Routes to submitter's manager</span>
+              </div>
+            </label>
+          </div>
 
           <div className={clsx('border-t pt-4', dark ? 'border-slate-700' : 'border-gray-100')}>
             <div className="flex items-center justify-between mb-3">
