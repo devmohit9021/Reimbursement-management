@@ -82,13 +82,8 @@ const getExpenses = async (req, res) => {
   const skip = (parseInt(page) - 1) * parseInt(limit);
 
   let where = { companyId: req.user.companyId };
-  if (req.user.role === 'EMPLOYEE') where.userId = req.user.id;
-  if (req.user.role === 'MANAGER') {
-    const teamIds = (await prisma.user.findMany({
-      where: { managerId: req.user.id },
-      select: { id: true },
-    })).map(u => u.id);
-    where.userId = { in: [req.user.id, ...teamIds] };
+  if (req.user.role === 'EMPLOYEE' || req.user.role === 'MANAGER') {
+    where.userId = req.user.id;
   }
   if (status) where.status = status.toUpperCase();
   if (category) where.category = category;

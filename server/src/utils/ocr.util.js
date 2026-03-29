@@ -41,22 +41,23 @@ const parseReceiptText = (text) => {
     if (fallbackMatch) amount = parseFloat(fallbackMatch[1].replace(/,/g, ''));
   }
 
-  // Currency: Look for clear symbols
+  // Currency: Look for clear symbols or geographical hints
   let currency = 'USD';
   const lt = text.toLowerCase();
-  if (text.includes('₹') || lt.includes('inr') || lt.includes('rs.') || lt.includes('rupees')) currency = 'INR';
+  if (text.includes('₹') || text.includes('Rs') || lt.includes('inr') || lt.includes('rupees') || lt.includes('india') || lt.includes('bangalore') || lt.includes('mumbai') || lt.includes('delhi')) currency = 'INR';
   else if (text.includes('€') || lt.includes('eur ')) currency = 'EUR';
   else if (text.includes('£') || lt.includes('gbp ')) currency = 'GBP';
   else if (text.includes('¥') || lt.includes('jpy ')) currency = 'JPY';
-  else if (lt.includes('aud ')) currency = 'AUD';
-  else if (lt.includes('cad ')) currency = 'CAD';
+  else if (lt.includes('aud ') || lt.includes('australia')) currency = 'AUD';
+  else if (lt.includes('cad ') || lt.includes('canada')) currency = 'CAD';
 
   // Date: try Date explicit label first, then fallback
-  let dateMatch = text.match(/date[^\d]*(\d{1,2}[\/\-\.]\d{1,2}[\/\-\.]\d{2,4})/i);
-  if (!dateMatch) dateMatch = text.match(/(\d{1,2}[\/\-\.]\d{1,2}[\/\-\.]\d{2,4})/);
+  // Handle slashes, dashes, dots, OR spaces
+  let dateMatch = text.match(/date[^\d]*(\d{1,2}[\/\-\.\s]+\d{1,2}[\/\-\.\s]+\d{2,4})/i);
+  if (!dateMatch) dateMatch = text.match(/(\d{1,2}[\/\-\.\s]+\d{1,2}[\/\-\.\s]+\d{2,4})/);
   let date = null;
   if (dateMatch) {
-    const parts = dateMatch[1].split(/[\/\-\.]/);
+    const parts = dateMatch[1].split(/[\/\-\.\s]+/).filter(Boolean);
     if (parts.length === 3) {
       // Guess format: if parts[2] is length 4, it's year.
       let day = parts[0], month = parts[1], year = parts[2];

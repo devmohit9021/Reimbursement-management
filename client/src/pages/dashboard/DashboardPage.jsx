@@ -12,8 +12,12 @@ import clsx from 'clsx';
 
 const COLORS = ['#4F46E5', '#22C55E', '#F59E0B', '#EF4444', '#8B5CF6'];
 
-function fmt(n, currency = 'INR') {
-  return new Intl.NumberFormat('en-IN', { style: 'currency', currency, maximumFractionDigits: 0 }).format(n || 0);
+function fmt(n, currency) {
+  try {
+    return new Intl.NumberFormat('en-IN', { style: 'currency', currency: currency || 'INR', maximumFractionDigits: 0 }).format(n || 0);
+  } catch (err) {
+    return `${currency || 'INR'} ${n || 0}`;
+  }
 }
 
 export default function DashboardPage() {

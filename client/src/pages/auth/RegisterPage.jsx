@@ -4,6 +4,18 @@ import { useAuth } from '../../context/AuthContext';
 import { Wallet, Eye, EyeOff, ArrowRight, Loader2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
+const InputField = ({ label, name, type = 'text', placeholder, required = true, value, onChange }) => (
+  <div>
+    <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1.5">{label}</label>
+    <input
+      type={type} required={required}
+      value={value} onChange={onChange}
+      placeholder={placeholder}
+      className="w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-slate-600 bg-white dark:bg-slate-800 text-gray-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
+    />
+  </div>
+);
+
 export default function RegisterPage() {
   const { register } = useAuth();
   const navigate = useNavigate();
@@ -62,17 +74,7 @@ export default function RegisterPage() {
     }
   };
 
-  const InputField = ({ label, name, type = 'text', placeholder, required = true }) => (
-    <div>
-      <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1.5">{label}</label>
-      <input
-        type={type} required={required}
-        value={form[name]} onChange={set(name)}
-        placeholder={placeholder}
-        className="w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-slate-600 bg-white dark:bg-slate-800 text-gray-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
-      />
-    </div>
-  );
+
 
   return (
     <div className="min-h-screen flex items-center justify-center p-6 bg-gradient-to-br from-indigo-50 via-white to-violet-50 dark:from-slate-900 dark:via-slate-900 dark:to-slate-800">
@@ -93,8 +95,8 @@ export default function RegisterPage() {
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
-              <InputField label="Your Name" name="name" placeholder="Alice Smith" />
-              <InputField label="Work Email" name="email" type="email" placeholder="alice@company.com" />
+              <InputField label="Your Name" name="name" placeholder="Alice Smith" value={form.name} onChange={set('name')} />
+              <InputField label="Work Email" name="email" type="email" placeholder="alice@company.com" value={form.email} onChange={set('email')} />
             </div>
 
             <div>
@@ -115,7 +117,7 @@ export default function RegisterPage() {
 
             <div className="border-t border-gray-100 dark:border-slate-700 pt-4">
               <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-3">Company Details</p>
-              <InputField label="Company Name" name="companyName" placeholder="Acme Corporation" />
+              <InputField label="Company Name" name="companyName" placeholder="Acme Corporation" value={form.companyName} onChange={set('companyName')} />
             </div>
 
             <div className="grid grid-cols-2 gap-4">

@@ -12,8 +12,12 @@ import clsx from 'clsx';
 const STATUSES = ['', 'PENDING', 'APPROVED', 'REJECTED', 'PAID'];
 const CATEGORIES = ['', 'Travel', 'Food & Dining', 'Accommodation', 'Office Supplies', 'Equipment', 'Software', 'Training', 'Medical', 'Entertainment', 'Other'];
 
-function fmt(n) {
-  return new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(n || 0);
+function fmt(n, currency) {
+  try {
+    return new Intl.NumberFormat('en-IN', { style: 'currency', currency: currency || 'INR', maximumFractionDigits: 0 }).format(n || 0);
+  } catch (err) {
+    return `${currency || 'INR'} ${n || 0}`;
+  }
 }
 
 export default function ExpensesListPage() {
